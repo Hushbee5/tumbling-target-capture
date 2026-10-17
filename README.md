@@ -94,18 +94,94 @@ Here $\rho = \lVert d\rVert$ is the distance to the capture point.
 
 **Geometry.** $r_{\mathrm{safe}} = 0.70$ m, $\lVert p_b\rVert = 0.806$ m, $s_{\mathrm{cap}} = 0.106$ m.
 
+**Parameter-error bound (lemma).** The integrated regressor update is decoupled, so every component decays at
+least as fast as the slowest mode:
+
+$$
+\tilde\theta_i(t) = \tilde\theta_i(0)\,e^{-\gamma\int_0^t\lambda_i\,d\tau}
+\;\Rightarrow\;
+\lVert\tilde\theta(t)\rVert \le \lVert\tilde\theta(0)\rVert\,e^{-\gamma\int_0^t\lambda_{\min}\,d\tau}.
+$$
+
+With the truth-independent start $\hat\theta_0 = 0$ and $\lVert\theta\rVert\le\sqrt3$ on the admissible set
+$\Theta=[-1,1]^3$, this gives $\nu(0)=\sqrt3$.
+
+**Scope of the guarantee.** For the linear-gain chain, $\psi_2 \ge 0$ for all $t$ together with
+$h(x_0)\ge 0$ and $\psi_1(x_0)\ge 0$ implies $h(x(t))\ge 0$ for all $t$. This is a continuous-time statement; the
+implementation enforces it at the 0.1 s samples, and every safety quantity is also checked on a finer
+intersample grid.
+
+## Key numbers from the paper
+
+**Model verification (selected).**
+
+| Check | Recorded |
+|---|---|
+| Quaternion norm error (120 s) | 2.22×10⁻¹⁶ |
+| Relative angular-momentum drift | 8.51×10⁻¹¹ |
+| Linear vs. nonlinear relative dynamics, 120 s | 2.045×10⁻⁷ m |
+| Capture-point radius invariance | 4.13×10⁻¹⁶ |
+
+**Deterministic 800 s scenario** (identical scenario, actuator model and metric code for all three controllers).
+
+| Quantity | Proposed | Nominal MPC | APF |
+|---|---|---|---|
+| Proximity milestone time [s] | 626.3 | 191.8 | 217.5 |
+| Δv over the full 800 s [m/s] | **2.347** | 2.434 | 2.447 |
+| Minimum clearance [m] | 0.0633 | 0.0900 | 0.0920 |
+| Body violations (80 001 inspected points) | none | none | none |
+| QP failures / steps at the actuator box | 0 / 0 of 8000 | — | — |
+
+![Integrated 800 s run: range to the capture point and cumulative impulse](figures/integrated_run_range_impulse.png)
+
+The uncertainty bound carried by the commitment row decays from √3 to 1.23×10⁻³ during the run. The filter
+modifies the nominal command on 6035 of 8000 steps.
+
+![Uncertainty bound and filter intervention](figures/integrated_run_bound_intervention.png)
+
+**Sampled-data finding.** At the tightest detector setting, the first chain function of the commitment row is
+negative on 43 enforced samples while the barrier itself stays positive. This is a measured instance of the gap
+between the continuous-time argument and the sampled implementation.
+
+![Commitment row under sampling](figures/capture_row_sampled_gap.png)
+
 ## Results (simulation)
 
 **600-run predeclared Monte Carlo stress test.**
 - 100 random trials × 2 preview conditions × 3 controllers (proposed, nominal MPC, artificial potential field).
 - The protocol was frozen before the trial table was drawn.
 
+| Outcome (out of 100 trials) | Proposed U | Proposed M | Nominal MPC U | Nominal MPC M | APF U | APF M |
+|---|---|---|---|---|---|---|
+| No observed body violation | **100** | **100** | 70 | 69 | 83 | 87 |
+| Proximity milestone | 1 | 12 | 32 | 69 | 29 | 87 |
+
+- **U:** the preview uses the nominal inertia (the realistic, mismatched case).
+- **M:** the preview uses the true inertia (a reference).
+- **Diagnosis:** the analysis traced the low arrival rate to the open-loop preview, which drifts under inertia
+  mismatch (median maximum error 0.71 m), and to a handoff band that the tightened commitment row did not let the
+  servicer enter. Version V3 corrects both.
+
+![Monte Carlo outcome rates](figures/mc600_outcome_rates.png)
+![Preview error against final range](figures/preview_error_vs_final_range.png)
+
 **Validation of the improved version (V3).**
 - 60 new trials, protocol frozen in advance, all controllers given the same online preview.
 - V3 had no observed keep-out violation in 60 of 60 runs and reached the capture zone in 57 of 60.
 - The nominal MPC entered the keep-out sphere in 15 runs and the APF in 8.
 
+| Quantity (60 new trials, same preview for all) | V3 | Nominal MPC | APF |
+|---|---|---|---|
+| No observed body violation | **60** | 45 | 52 |
+| Proximity milestone | **57** | 45 | 52 |
+| Guard breaches / QP fallbacks | 0 / 0 | — | — |
+| Minimum clearance over all runs [m] | **+0.00015** | −0.494 | −0.122 |
+
+Both predeclared criteria were met: at least 59/60 runs without violation, and at least 18/60 runs reaching the
+milestone.
+
 ![Validation on 60 trials](media/validation_60.gif)
+![Validation summary](figures/validation_60.png)
 
 **Beyond the paper (development prototypes):**
 - a 6-DOF arm on a free-floating bus grasping the handle in MuJoCo;
