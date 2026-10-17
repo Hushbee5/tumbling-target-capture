@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.mat
+*.asv
+*.mp4
+*.tif

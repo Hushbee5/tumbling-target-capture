@@ -1,0 +1,26 @@
+det_r3_N1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.6, 'CLOSE': 17.6, 'HOLD': 17.6}  end d 0.0020 m  v 0.0020 m/s  forbidden 0  wall 63 s
+det_r3_N2      -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1493 m  v 0.0195 m/s  forbidden 0  wall 286 s
+det_r3_L1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0009 m  v 0.0000 m/s  forbidden 0  wall 58 s
+det_r3_L2      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.6, 'CLOSE': 17.6, 'HOLD': 17.6}  end d 0.0023 m  v 0.0001 m/s  forbidden 0  wall 62 s
+det_r3_B1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0005 m  v 0.0000 m/s  forbidden 0  wall 59 s
+w2_1_N1        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.6, 'CLOSE': 17.6, 'HOLD': 17.6}  end d 0.0010 m  v 0.0002 m/s  forbidden 0  wall 62 s
+w2_1_N2        -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1466 m  v 0.0006 m/s  forbidden 0  wall 309 s
+w2_1_L1        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0007 m  v 0.0000 m/s  forbidden 0  wall 76 s
+w2_1_L2        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.7, 'CLOSE': 16.7, 'HOLD': 16.7}  end d 0.0021 m  v 0.0001 m/s  forbidden 0  wall 79 s
+w2_1_B1        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0003 m  v 0.0000 m/s  forbidden 0  wall 139 s
+w3_1_N1        -> UNSAFE_CONTACT  timeline {'SYNC': 0.0, 'APPROACH': 2.6, 'CLOSE': 17.6, 'HOLD': 17.6}  end d 0.0572 m  v 0.0197 m/s  forbidden 130  wall 115 s
+w3_1_N2        -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1487 m  v 0.0166 m/s  forbidden 0  wall 407 s
+w3_1_L1        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0008 m  v 0.0000 m/s  forbidden 0  wall 89 s
+w3_1_L2        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0022 m  v 0.0001 m/s  forbidden 0  wall 71 s
+w3_1_B1        -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0004 m  v 0.0000 m/s  forbidden 0  wall 71 s
+det_r3_NOM     -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0005 m  v 0.0000 m/s  forbidden 0  wall 62 s
+w1_1_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0002 m  v 0.0000 m/s  forbidden 0  wall 73 s
+w1_2_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0001 m  v 0.0000 m/s  forbidden 0  wall 66 s
+w1_3_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0002 m  v 0.0000 m/s  forbidden 0  wall 58 s
+w2_1_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0003 m  v 0.0000 m/s  forbidden 0  wall 65 s
+w2_2_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0003 m  v 0.0000 m/s  forbidden 0  wall 66 s
+w2_3_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0002 m  v 0.0000 m/s  forbidden 0  wall 67 s
+w3_1_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0004 m  v 0.0000 m/s  forbidden 0  wall 74 s
+w3_2_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0002 m  v 0.0000 m/s  forbidden 0  wall 71 s
+w3_3_NOM       -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0004 m  v 0.0000 m/s  forbidden 0  wall 71 s
+exit=0

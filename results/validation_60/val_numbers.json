@@ -1,0 +1,461 @@
+{
+ "source_report": "results/val_v3_report/V3_VALIDATION_RESULTS.md",
+ "report_title": "# V3 validation results",
+ "dry_run": false,
+ "arms": {
+  "V3": {
+   "runs": 60,
+   "complete": 60,
+   "no_viol": "60/60 [94.0, 100.0]",
+   "prox": "57/60 [86.3, 98.3]",
+   "safe_success": "57/60 [86.3, 98.3]",
+   "t_milestone_median": "335.6 (57)",
+   "dv_full_median": "1.43 (60)",
+   "dv_to_milestone_median": "0.4648 (57)",
+   "range_800_median": "0.007336 (60)",
+   "min_clearance": "0.0001529",
+   "no_viol_k": 60,
+   "no_viol_n": 60,
+   "no_viol_wilson_pct": [
+    94.0,
+    100.0
+   ],
+   "prox_k": 57,
+   "prox_n": 60,
+   "prox_wilson_pct": [
+    86.3,
+    98.3
+   ],
+   "safe_success_k": 57,
+   "safe_success_n": 60,
+   "safe_success_wilson_pct": [
+    86.3,
+    98.3
+   ]
+  },
+  "MPCP": {
+   "runs": 60,
+   "complete": 60,
+   "no_viol": "45/60 [62.8, 84.2]",
+   "prox": "45/60 [62.8, 84.2]",
+   "safe_success": "45/60 [62.8, 84.2]",
+   "t_milestone_median": "188.6 (45)",
+   "dv_full_median": "1.489 (60)",
+   "dv_to_milestone_median": "0.3679 (45)",
+   "range_800_median": "0.007336 (60)",
+   "min_clearance": "-0.4943",
+   "no_viol_k": 45,
+   "no_viol_n": 60,
+   "no_viol_wilson_pct": [
+    62.8,
+    84.2
+   ],
+   "prox_k": 45,
+   "prox_n": 60,
+   "prox_wilson_pct": [
+    62.8,
+    84.2
+   ],
+   "safe_success_k": 45,
+   "safe_success_n": 60,
+   "safe_success_wilson_pct": [
+    62.8,
+    84.2
+   ]
+  },
+  "APFP": {
+   "runs": 60,
+   "complete": 60,
+   "no_viol": "52/60 [75.8, 93.1]",
+   "prox": "52/60 [75.8, 93.1]",
+   "safe_success": "52/60 [75.8, 93.1]",
+   "t_milestone_median": "258.6 (52)",
+   "dv_full_median": "1.566 (60)",
+   "dv_to_milestone_median": "0.4953 (52)",
+   "range_800_median": "0.006921 (60)",
+   "min_clearance": "-0.1217",
+   "no_viol_k": 52,
+   "no_viol_n": 60,
+   "no_viol_wilson_pct": [
+    75.8,
+    93.1
+   ],
+   "prox_k": 52,
+   "prox_n": 60,
+   "prox_wilson_pct": [
+    75.8,
+    93.1
+   ],
+   "safe_success_k": 52,
+   "safe_success_n": 60,
+   "safe_success_wilson_pct": [
+    75.8,
+    93.1
+   ]
+  }
+ },
+ "missing_runs": "none",
+ "guard_breach": 0,
+ "d9_events": "{'NORMAL': 57, 'NO_EVENT': 3}",
+ "qp_level1_runs": 0,
+ "qp_level1_steps": 0,
+ "qp_level2_runs": 0,
+ "qp_level2_steps": 0,
+ "handoff_line": "median nu 1.3, median a_req 0.00254 m/s^2, min clearance after handoff 0.007371 m (over 57 NORMAL runs)",
+ "g_lemma_line": "max sampled |rho_dot| over V3 runs 0.0985 m/s; runs where it exceeds the per-run bound: 0 of 60",
+ "paired": {
+  "prox_V3_vs_MPCP": {
+   "both": 44,
+   "V3_only": 13,
+   "MPCP_only": 1,
+   "neither": 2,
+   "excluded": 0
+  },
+  "no_viol_V3_vs_MPCP": {
+   "both": 45,
+   "V3_only": 15,
+   "MPCP_only": 0,
+   "neither": 0,
+   "excluded": 0
+  },
+  "prox_V3_vs_APFP": {
+   "both": 52,
+   "V3_only": 5,
+   "APFP_only": 0,
+   "neither": 3,
+   "excluded": 0
+  },
+  "no_viol_V3_vs_APFP": {
+   "both": 52,
+   "V3_only": 8,
+   "APFP_only": 0,
+   "neither": 0,
+   "excluded": 0
+  }
+ },
+ "criterion1": "MET",
+ "criterion2": "MET",
+ "criterion2_k_needed": 18,
+ "criterion2_n": 60,
+ "criterion2_got": 57,
+ "overall": "met",
+ "overall_met": true,
+ "v3n": [
+  {
+   "trial": 1,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "312.2",
+    "432.2"
+   ],
+   "dv_to_v3n_v3": [
+    "0.6797",
+    "0.9983"
+   ],
+   "dv_full_v3n_v3": [
+    "1.98",
+    "1.991"
+   ],
+   "min_clear_v3n_v3": [
+    "0.03302",
+    "0.03852"
+   ],
+   "nmpc_solve_median_s": 0.244,
+   "nmpc_solve_p95_s": 0.691,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "6.5e-13",
+    "9.2e-11"
+   ]
+  },
+  {
+   "trial": 2,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "445.3",
+    "461.7"
+   ],
+   "dv_to_v3n_v3": [
+    "1.149",
+    "1.231"
+   ],
+   "dv_full_v3n_v3": [
+    "2.099",
+    "2.12"
+   ],
+   "min_clear_v3n_v3": [
+    "0.04031",
+    "0.06031"
+   ],
+   "nmpc_solve_median_s": 0.274,
+   "nmpc_solve_p95_s": 1.161,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "1.5e-12",
+    "9.0e-11"
+   ]
+  },
+  {
+   "trial": 3,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "442.9",
+    "443.0"
+   ],
+   "dv_to_v3n_v3": [
+    "0.2985",
+    "0.2975"
+   ],
+   "dv_full_v3n_v3": [
+    "0.3712",
+    "0.37"
+   ],
+   "min_clear_v3n_v3": [
+    "0.0007139",
+    "0.0003521"
+   ],
+   "nmpc_solve_median_s": 0.243,
+   "nmpc_solve_p95_s": 0.693,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "6.8e-11",
+    "9.9e-11"
+   ]
+  },
+  {
+   "trial": 4,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "376.9",
+    "218.0"
+   ],
+   "dv_to_v3n_v3": [
+    "0.2324",
+    "0.1941"
+   ],
+   "dv_full_v3n_v3": [
+    "0.3449",
+    "0.3331"
+   ],
+   "min_clear_v3n_v3": [
+    "0.01245",
+    "0.1044"
+   ],
+   "nmpc_solve_median_s": 0.185,
+   "nmpc_solve_p95_s": 0.852,
+   "nmpc_failures": 1,
+   "max_slack_keepout_commit": [
+    "3.3e-12",
+    "6.6e-11"
+   ]
+  },
+  {
+   "trial": 5,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "430.9",
+    "428.6"
+   ],
+   "dv_to_v3n_v3": [
+    "0.3117",
+    "0.3119"
+   ],
+   "dv_full_v3n_v3": [
+    "0.4788",
+    "0.4798"
+   ],
+   "min_clear_v3n_v3": [
+    "0.07518",
+    "0.06719"
+   ],
+   "nmpc_solve_median_s": 0.19,
+   "nmpc_solve_p95_s": 0.773,
+   "nmpc_failures": 1,
+   "max_slack_keepout_commit": [
+    "1.7e-12",
+    "1.0e-10"
+   ]
+  },
+  {
+   "trial": 6,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "351.7",
+    "352.8"
+   ],
+   "dv_to_v3n_v3": [
+    "0.8251",
+    "0.8294"
+   ],
+   "dv_full_v3n_v3": [
+    "2.085",
+    "2.084"
+   ],
+   "min_clear_v3n_v3": [
+    "0.04001",
+    "0.02413"
+   ],
+   "nmpc_solve_median_s": 0.297,
+   "nmpc_solve_p95_s": 0.717,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "6.1e-11",
+    "9.5e-11"
+   ]
+  },
+  {
+   "trial": 7,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "388.9",
+    "387.7"
+   ],
+   "dv_to_v3n_v3": [
+    "0.3348",
+    "0.3345"
+   ],
+   "dv_full_v3n_v3": [
+    "0.5862",
+    "0.5863"
+   ],
+   "min_clear_v3n_v3": [
+    "0.04978",
+    "0.04563"
+   ],
+   "nmpc_solve_median_s": 0.192,
+   "nmpc_solve_p95_s": 1.137,
+   "nmpc_failures": 1,
+   "max_slack_keepout_commit": [
+    "6.5e-13",
+    "9.9e-11"
+   ]
+  },
+  {
+   "trial": 8,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "445.0",
+    "452.2"
+   ],
+   "dv_to_v3n_v3": [
+    "1.372",
+    "1.397"
+   ],
+   "dv_full_v3n_v3": [
+    "2.723",
+    "2.711"
+   ],
+   "min_clear_v3n_v3": [
+    "0.06453",
+    "0.03401"
+   ],
+   "nmpc_solve_median_s": 0.178,
+   "nmpc_solve_p95_s": 0.519,
+   "nmpc_failures": 2,
+   "max_slack_keepout_commit": [
+    "4.8e-11",
+    "9.9e-11"
+   ]
+  },
+  {
+   "trial": 9,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "385.5",
+    "380.9"
+   ],
+   "dv_to_v3n_v3": [
+    "0.8179",
+    "0.8137"
+   ],
+   "dv_full_v3n_v3": [
+    "1.434",
+    "1.439"
+   ],
+   "min_clear_v3n_v3": [
+    "0.1039",
+    "0.1039"
+   ],
+   "nmpc_solve_median_s": 0.204,
+   "nmpc_solve_p95_s": 0.451,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "1.9e-12",
+    "9.9e-11"
+   ]
+  },
+  {
+   "trial": 10,
+   "status": "COMPLETE",
+   "prox": 1,
+   "no_viol": 1,
+   "v3_prox": "1",
+   "v3_no_viol": "1",
+   "t_milestone_v3n_v3": [
+    "242.1",
+    "242.1"
+   ],
+   "dv_to_v3n_v3": [
+    "0.3902",
+    "0.3902"
+   ],
+   "dv_full_v3n_v3": [
+    "1.307",
+    "1.307"
+   ],
+   "min_clear_v3n_v3": [
+    "0.1031",
+    "0.1031"
+   ],
+   "nmpc_solve_median_s": 0.146,
+   "nmpc_solve_p95_s": 0.466,
+   "nmpc_failures": 0,
+   "max_slack_keepout_commit": [
+    "6.5e-13",
+    "1.2e-11"
+   ]
+  }
+ ],
+ "v3n_s6b": {
+  "runs": 10,
+  "no_viol": 10,
+  "level2_runs": 0,
+  "verdict": "MET"
+ }
+}

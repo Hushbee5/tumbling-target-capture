@@ -1,0 +1,8 @@
+F3 ROS 2 run 1 vs run 2 (det_r3): history fields differing: none; summaries equal (wall time excluded): True -> PASS
+   F1 detail e_o      max |ROS2 - in-process| = 8.735e-12 (field max 8.277e-03)
+   F1 detail e_p      max |ROS2 - in-process| = 2.668e-14 (field max 1.892e-04)
+   F1 detail v_rel    max |ROS2 - in-process| = 4.330e-15 (field max 1.001e-02)
+   F1 detail bus_e    max |ROS2 - in-process| = 1.269e-11 (field max 2.738e-02)
+   F1 detail wrist_f  max |ROS2 - in-process| = 8.241e-11 (field max 5.353e-01)
+   F1 detail wrist_t  max |ROS2 - in-process| = 3.726e-12 (field max 3.462e-02)
+   F1 detail f_pad    max |ROS2 - in-process| = 2.565e-11 (field max 4.118e+01)

@@ -1,0 +1,400 @@
+function out = simulate_baseline(p, opt)
+% SIMULATE_BASELINE  The common baseline simulator for both compared methods.
+%   out = simulate_baseline(p, opt) runs one baseline closed loop on the truth
+%   plant under the frozen execution contract of protocol Sec. 8:
+%
+%       plant         rel_translational_dynamics(..., 'nonlinear')
+%       integrator    ode45 , RelTol 1e-10 , AbsTol 1e-12
+%       Ts = 0.1 , n_sub = 10 , K = Tsim/Ts
+%       preview       identical capture_table_build span for both methods
+%       actuator      IDENTICAL per-axis box |u_i| <= u_max for BOTH methods
+%       termination   the full horizon for every method; no early abort except
+%                     numerical failure
+%       D9            NOT RUN in any baseline; no alpha enters anything here
+%
+%   opt fields:
+%       method       'apf' | 'nominal_mpc'                            REQUIRED
+%       x0           6x1 initial state                                REQUIRED
+%       Tsim         horizon [s]; no default is ever chosen here      REQUIRED
+%       gains        APF gains (from APF_GAINS) or a theta struct   APF REQUIRED
+%       truthIC      target truth ICs, default p.target
+%       previewIC    target preview ICs, default truthIC
+%       tables       precomputed BASELINE_CAPTURE_TABLES output (optional; the
+%                    tuning search reuses one table set across candidates, which
+%                    changes nothing physically and saves the fine-grid target
+%                    propagation on every run)
+%       r1           precomputed APF_R1_MARGIN result (optional, APF only)
+%       allow_eval_x0  default FALSE; see the forbidden-IC guard below
+%
+%   THE FORBIDDEN EVALUATION INITIAL CONDITION. x0 = [0; -10; 0; 0; 0; 0] is
+%   FORBIDDEN in development and in verification (protocol Sec. 5 and 14.0). It
+%   is refused here unless the caller explicitly passes allow_eval_x0 = true,
+%   which only the frozen one-shot evaluation harness may do. This is the
+%   harness assertion the protocol requires.
+%
+%   V9b DEPENDENCY DISCIPLINE - THE MPC SETUP IS BRANCH-LOCAL, ON PURPOSE.
+%   mpc_condensed is built ONLY on the nominal-MPC branch, and
+%   capture_reference_preview / mpc_step are reached ONLY through
+%   CONTROLLER_NOMINAL_MPC. Building M unconditionally would make the APF run
+%   enter mpc_condensed, and the V9b path-shadowing proof would then fail on a
+%   stub error even though the APF control law itself never touches the MPC.
+%   Do not hoist that call out of the branch.
+%
+%   NUMERICAL FAILURE IS THE ONLY EARLY EXIT. A non-finite command (commanded
+%   OR applied) or state stops the run, records the step and marks the run
+%   numerically INELIGIBLE. No safety event, proximity outcome or solver status
+%   ever terminates a run.
+%
+%   numerically_eligible IS THE AUTHORITATIVE VERDICT, and it is stricter than
+%   ~numerical_failure: a run that completes the horizon but leaves a NaN or Inf
+%   in ANY result-relevant history is promoted to a numerical failure at the end
+%   of this function. A partial run stopped by a caught ode45 failure may retain
+%   finite partial diagnostics, but it stays an execution-integrity failure and
+%   can never be treated as a scientific COMPLETE result.
+%
+%   out is the common baseline artifact (V11a schema). BASELINE_SCHEMA validates
+%   it; nothing here decides selection, ranking or classification.
+
+    assert(nargin >= 2 && isstruct(opt), 'simulate_baseline:opt', ...
+        'An options struct is required.');
+    assert(isfield(opt, 'method'), 'simulate_baseline:method', ...
+        'opt.method must be ''apf'' or ''nominal_mpc''.');
+    method = lower(opt.method);
+    assert(any(strcmp(method, {'apf', 'nominal_mpc'})), 'simulate_baseline:method', ...
+        'Unknown method ''%s''; use ''apf'' or ''nominal_mpc''.', opt.method);
+
+    % NO SILENT HORIZON DEFAULT, for the same reason SIMULATE_TASK4 refuses one.
+    assert(isfield(opt, 'Tsim') && isscalar(opt.Tsim) && opt.Tsim > 0, ...
+        'simulate_baseline:Tsim', ...
+        'opt.Tsim must be supplied explicitly and be a positive scalar.');
+    assert(isfield(opt, 'x0') && isnumeric(opt.x0) && numel(opt.x0) == 6 ...
+           && all(isfinite(opt.x0(:))) && isreal(opt.x0), 'simulate_baseline:x0', ...
+        'opt.x0 must be a finite real 6-vector.');
+
+    if ~isfield(opt, 'allow_eval_x0'), opt.allow_eval_x0 = false; end
+    x0 = opt.x0(:);
+    if ~opt.allow_eval_x0
+        assert(~isequal(x0, p.bl.eval_x0), 'simulate_baseline:forbidden_ic', ...
+            ['REFUSED: x0 = [0; -10; 0; 0; 0; 0] is the FROZEN EVALUATION ' ...
+             'initial condition. It is FORBIDDEN in development and in V1-V11 ' ...
+             '(protocol Sec. 5 and 14.0). Only the one-shot evaluation harness ' ...
+             'may pass allow_eval_x0 = true.']);
+    end
+
+    Ts    = p.ctrl.Ts;
+    n_sub = p.bl.n_sub;
+    N     = p.bl.N;
+
+    nStepsExact = opt.Tsim / Ts;
+    assert(abs(nStepsExact - round(nStepsExact)) <= 1e-9 * max(1, abs(nStepsExact)), ...
+        'simulate_baseline:grid_Tsim', ...
+        ['opt.Tsim = %.12g s is not an integer multiple of Ts = %g s. The ' ...
+         'horizon is not silently rounded.'], opt.Tsim, Ts);
+    K    = round(nStepsExact);
+    Tsim = K * Ts;
+    t    = (0:K) * Ts;
+
+    % ---- target identities and the two capture-point tables ----------------
+    if ~isfield(opt, 'truthIC') || isempty(opt.truthIC)
+        opt.truthIC = struct('q', p.target.q0, 'w', p.target.w0, 'I', p.target.I);
+    end
+    if ~isfield(opt, 'previewIC') || isempty(opt.previewIC)
+        opt.previewIC = opt.truthIC;
+    end
+    if isfield(opt, 'tables') && ~isempty(opt.tables)
+        tabs = opt.tables;
+        assert(tabs.K == K && abs(tabs.Ts - Ts) < 1e-15, 'simulate_baseline:tables', ...
+            ['A supplied capture-point table set was built for K = %d at ' ...
+             'Ts = %g s, not for this run''s K = %d at Ts = %g s.'], ...
+            tabs.K, tabs.Ts, K, Ts);
+        assert(isequal(tabs.identity.truth.q(:),   opt.truthIC.q(:)) ...
+            && isequal(tabs.identity.truth.w(:),   opt.truthIC.w(:)) ...
+            && isequal(tabs.identity.truth.I,      opt.truthIC.I) ...
+            && isequal(tabs.identity.preview.q(:), opt.previewIC.q(:)) ...
+            && isequal(tabs.identity.preview.w(:), opt.previewIC.w(:)) ...
+            && isequal(tabs.identity.preview.I,    opt.previewIC.I), ...
+            'simulate_baseline:tables_identity', ...
+            ['A supplied capture-point table set was built for different target ' ...
+             'identities than this run requests. Reuse is a speed optimisation ' ...
+             'only; it may never change what was simulated.']);
+    else
+        tabs = baseline_capture_tables(p, opt.truthIC, opt.previewIC, Tsim);
+    end
+
+    % Preview-derived feedforward, computed for BOTH methods because it is part
+    % of the common artifact schema. Only the APF applies it.
+    ff = baseline_acp_ff(tabs.v_cp_preview, Ts);
+    assert(size(ff.a_ctrl, 2) == K, 'simulate_baseline:ff_columns', ...
+        'a_cp_ff_ctrl has %d columns, not K = %d.', size(ff.a_ctrl, 2), K);
+
+    % ---- method-specific setup ---------------------------------------------
+    gains = [];
+    r1    = [];
+    M     = [];
+    switch method
+        case 'apf'
+            assert(isfield(opt, 'gains') && ~isempty(opt.gains), ...
+                'simulate_baseline:gains', 'opt.gains is required for the APF method.');
+            if isfield(opt.gains, 'k_a')
+                gains = opt.gains;
+            else
+                gains = apf_gains(opt.gains, p);      % a theta struct was supplied
+            end
+            if isfield(opt, 'r1') && ~isempty(opt.r1)
+                r1 = opt.r1;
+            else
+                r1 = apf_r1_margin(gains, p);
+            end
+        case 'nominal_mpc'
+            % BRANCH-LOCAL, deliberately. See the V9b note in the header.
+            M = mpc_condensed(p, N);
+    end
+
+    % ---- allocation ---------------------------------------------------------
+    X   = zeros(6, K+1);   X(:, 1) = x0;
+    Ucm = zeros(3, K);
+    Uap = zeros(3, K);
+    C1  = zeros(3, K);  C2 = zeros(3, K);  C3 = zeros(3, K);  C4 = zeros(3, K);
+    clipF = false(1, K);
+    clipA = false(3, K);
+    ang   = nan(1, K);
+    solveFlag = nan(1, K);
+    solveTime = nan(1, K);
+    solveCost = nan(1, K);
+
+    nInt   = n_sub - 1;                      % 9 STRICT-interior points per step
+    interT = nan(1, nInt*K);
+    interH = nan(1, nInt*K);
+    interR = nan(3, nInt*K);
+
+    odeOpt = odeset('RelTol', p.bl.ode_reltol, 'AbsTol', p.bl.ode_abstol);
+
+    numerical_failure = false;
+    failure_reason    = '';
+    failure_k         = [];
+    K_applied         = K;
+
+    % ---- loop ---------------------------------------------------------------
+    for k = 1:K
+        xk = X(:, k);
+
+        switch method
+            case 'apf'
+                st = controller_apf(xk, tabs.p_cp_preview(:, k), ...
+                                    tabs.v_cp_preview(:, k), ff.a_ctrl(:, k), gains, p);
+                C1(:, k) = st.c1;  C2(:, k) = st.c2;
+                C3(:, k) = st.c3;  C4(:, k) = st.c4;
+                clipF(k)    = st.clipped;
+                clipA(:, k) = st.clip_per_axis;
+                ang(k)      = st.angle;
+            case 'nominal_mpc'
+                st = controller_nominal_mpc(xk, t(k), N, M, p, tabs.tbl_preview);
+                solveFlag(k) = st.solver.exitflag;
+                solveTime(k) = st.solver.solve_time;
+                solveCost(k) = st.solver.cost;
+        end
+
+        Ucm(:, k) = st.u_cmd;
+        Uap(:, k) = st.u_applied;
+
+        % BOTH commands are checked. u_applied alone is not enough: the box
+        % saturation maps a non-finite u_cmd component onto a finite bound
+        % whenever it is a signed infinity, so a NaN/Inf in the UNSATURATED
+        % command could otherwise be laundered into a finite applied command and
+        % reach the logged history as if the step were valid.
+        if ~all(isfinite(st.u_cmd)) || ~all(isfinite(st.u_applied))
+            numerical_failure = true;
+            failure_k = k;
+            failure_reason = sprintf(['Non-finite command at k = %d ' ...
+                '(t = %.4f s): u_cmd finite = %d, u_applied finite = %d. The ' ...
+                'run is numerically INELIGIBLE.'], k-1, t(k), ...
+                all(isfinite(st.u_cmd)), all(isfinite(st.u_applied)));
+            K_applied = k - 1;
+            break
+        end
+
+        % ---- truth plant over [t_k, t_k + Ts) ------------------------------
+        % THE try BLOCK WRAPS THE FIXED ode45 CALL AND NOTHING ELSE. An
+        % integrator failure is a NUMERICAL ELIGIBILITY outcome, not a search
+        % abort: the run terminates gracefully here, the candidate is logged and
+        % marked ineligible, and the remaining D1-D5 scenarios still execute.
+        % THERE IS NO RETRY, and the solver, its tolerances and the step
+        % semantics are NOT changed in response to a failure - doing so would
+        % make the failed run a different experiment from the successful ones.
+        %
+        % A THROWN EXCEPTION IS NOT THE ONLY WAY ode45 CAN FAIL. When the step
+        % size underflows, MATLAB's ODE solvers issue a WARNING and RETURN
+        % SHORTENED OUTPUT rather than raising, so a catch-only guard would let a
+        % truncated integration through: Xs(end,:) would then be some interior
+        % time, silently recorded as the state at t_{k+1}, and the strict-interior
+        % loop would index rows that do not correspond to tsub(2:n_sub). The
+        % requested output cardinality is therefore checked immediately, INSIDE
+        % the same try block, and a shortfall is raised as a local error so the
+        % existing catch converts it into the same graceful integrator failure.
+        % Nothing is retried, re-solved, interpolated or substituted.
+        tsub = linspace(t(k), t(k+1), n_sub + 1);
+        try
+            [tout, Xs] = ode45(@(tt, xx) rel_translational_dynamics(xx, st.u_applied, p, ...
+                               p.bl.plant_mode), tsub, xk, odeOpt);
+            if numel(tout) ~= n_sub + 1 || size(Xs, 1) ~= n_sub + 1
+                error('simulate_baseline:ode_short_output', ...
+                    ['ode45 returned %d time point(s) and %d state row(s) for ' ...
+                     'the %d requested output times. The solver terminated ' ...
+                     'early without raising, so the integration over this ' ...
+                     'interval is INCOMPLETE.'], numel(tout), size(Xs, 1), n_sub + 1);
+            end
+        catch odeErr
+            numerical_failure = true;
+            failure_k = k;
+            failure_reason = sprintf(['Integrator failure in ode45 over interval ' ...
+                'k = %d (t = %.4f s): %s (%s). No retry was attempted and no ' ...
+                'solver setting was changed. The run is numerically ' ...
+                'INELIGIBLE.'], k-1, t(k), odeErr.message, odeErr.identifier);
+            K_applied = k - 1;
+            break
+        end
+        X(:, k+1) = Xs(end, :).';
+
+        if ~all(isfinite(X(:, k+1)))
+            numerical_failure = true;
+            failure_k = k;
+            failure_reason = sprintf(['Non-finite state after interval k = %d ' ...
+                '(t = %.4f s). The run is numerically INELIGIBLE.'], k-1, t(k));
+            K_applied = k - 1;
+            break
+        end
+
+        % ---- 9 STRICT-interior diagnostic points ---------------------------
+        % tsub(1) and tsub(end) are the control-state samples themselves and are
+        % deliberately excluded: the inspected union must not double-count them.
+        base = (k-1)*nInt;
+        for j = 2:n_sub
+            xj = Xs(j, :).';
+            interT(base + j - 1)    = tsub(j);
+            interH(base + j - 1)    = safety_function(xj, p, p.bl.drift_mode);
+            interR(:, base + j - 1) = xj(1:3);
+        end
+    end
+
+    % ---- slice to what actually happened ------------------------------------
+    ns  = K_applied + 1;
+    idx = 1:K_applied;
+    ii  = 1:(nInt*K_applied);
+
+    out.t          = t(1:ns);
+    out.X          = X(:, 1:ns);
+    out.v          = X(4:6, 1:ns);
+    out.x0         = x0;
+    out.u_cmd      = Ucm(:, idx);
+    out.u_applied  = Uap(:, idx);
+    out.qT         = tabs.qT(:, 1:ns);
+    out.wT         = tabs.wT(:, 1:ns);
+
+    out.p_cp_preview = tabs.p_cp_preview(:, 1:ns);
+    out.v_cp_preview = tabs.v_cp_preview(:, 1:ns);
+    out.a_cp_ff_ctrl = ff.a_ctrl(:, idx);
+    out.a_cp_ff_terminal          = ff.a_terminal;
+    out.a_cp_ff_terminal_tag      = ff.terminal_tag;      % 'DIAGNOSTIC_ONLY'
+    out.p_cp_truth   = tabs.p_cp_truth(:, 1:ns);
+    out.v_cp_truth   = tabs.v_cp_truth(:, 1:ns);
+
+    out.inter_t      = interT(ii);
+    out.inter_h_body = interH(ii);
+    out.inter_r      = interR(:, ii);
+
+    out.method     = method;
+    out.K          = K_applied;
+    out.K_expected = K;
+    out.Tsim       = Tsim;
+    out.N          = N;
+    out.n_sub      = n_sub;
+    out.completed  = (K_applied == K) && ~numerical_failure;
+    out.numerical_failure = numerical_failure;
+    out.failure_reason    = failure_reason;
+    out.failure_k         = failure_k;
+    % NUMERICAL ELIGIBILITY IS THE AUTHORITATIVE EXECUTION-INTEGRITY VERDICT.
+    % A run may reach the metric and ranking layer only if EVERY result-relevant
+    % history is finite, not merely the state and the applied command. A NaN
+    % anywhere in the preview/truth geometry, the feedforward or the intersample
+    % body histories would otherwise propagate silently into h_body, rho_truth,
+    % t_viol, I_sel and the T1-T7 vector.
+    checkFields = {'X', 'v', 'u_cmd', 'u_applied', 'qT', 'wT', ...
+                   'p_cp_preview', 'v_cp_preview', 'a_cp_ff_ctrl', ...
+                   'a_cp_ff_terminal', 'p_cp_truth', 'v_cp_truth', ...
+                   't', 'inter_t', 'inter_h_body', 'inter_r'};
+    nonfinite = {};
+    for ci = 1:numel(checkFields)
+        vals = out.(checkFields{ci});
+        if ~isempty(vals) && ~all(isfinite(vals(:)))
+            nonfinite{end+1} = checkFields{ci};                       %#ok<AGROW>
+        end
+    end
+    out.nonfinite_fields = nonfinite;
+
+    % A NON-FINITE RESULT-RELEVANT HISTORY IS PROMOTED TO A NUMERICAL FAILURE.
+    % Without this a run could finish the full horizon, carry a NaN in a logged
+    % history, and still report numerical_failure == false - so a consumer that
+    % tested only ~numerical_failure would treat it as a valid scientific
+    % result. The promotion makes the two flags agree, and
+    % numerically_eligible is the verdict every consumer must read.
+    if ~isempty(nonfinite) && ~out.numerical_failure
+        out.numerical_failure = true;
+        out.failure_reason = sprintf(['Non-finite values in result-relevant ' ...
+            'history field(s): %s. Promoted to an EXECUTION-INTEGRITY FAILURE; ' ...
+            'the run is numerically INELIGIBLE and is not a scientific ' ...
+            'result.'], strjoin(nonfinite, ', '));
+    end
+
+    out.numerically_eligible = out.completed && isempty(nonfinite) ...
+                               && ~out.numerical_failure;
+    if ~out.numerically_eligible && isempty(out.failure_reason)
+        out.failure_reason = sprintf(['Run is numerically INELIGIBLE: ' ...
+            'completed = %d, non-finite fields = {%s}.'], out.completed, ...
+            strjoin(nonfinite, ', '));
+    end
+
+    out.target_identity = tabs.identity;
+
+    switch method
+        case 'apf'
+            out.apf = struct( ...
+                'c1', C1(:, idx), 'c2', C2(:, idx), ...
+                'c3', C3(:, idx), 'c4', C4(:, idx), ...
+                'clip_flags', clipF(idx), 'clip_per_axis', clipA(:, idx), ...
+                'direction_distortion_angle', ang(idx), ...
+                'theta', struct('omega_n', gains.omega_n, 'zeta', gains.zeta, ...
+                                'beta', gains.beta, 'kappa', gains.kappa), ...
+                'derived', struct('k_a', gains.k_a, 'k_d', gains.k_d, 'k_r', gains.k_r), ...
+                'r1_margin', r1.r1_margin, ...
+                'r1_stationary_locations', r1.stationary_locations, ...
+                'r1', r1);
+            [~, astats] = baseline_direction_angle(Uap(:, idx), Ucm(:, idx));
+            out.apf.excluded_angle_count = astats.n_excluded;
+            out.apf.angle_stats          = astats;
+            out.clip_flags = clipF(idx);        % promoted for BASELINE_METRICS
+        case 'nominal_mpc'
+            out.mpc_solver_status = struct( ...
+                'exitflag',   solveFlag(idx), ...
+                'solve_time', solveTime(idx), ...
+                'cost',       solveCost(idx), ...
+                'n_failed',   sum(solveFlag(idx) <= 0), ...
+                'note', ['Recorded from the FROZEN mpc_step at every control ' ...
+                         'step. No baseline-specific fallback, retry, ' ...
+                         'warm-start override or option change exists.']);
+            out.clip_flags = [];                % no post-command clip exists
+    end
+
+    % Config: the baseline block plus the run options, with no alpha anywhere.
+    out.config = struct( ...
+        'method',    method, ...
+        'Tsim',      Tsim, 'K', K, 'Ts', Ts, 'n_sub', n_sub, 'N', N, ...
+        'u_max',     p.chaser.u_max, 'r_safe', p.geom.r_safe, ...
+        's_cap',     p.bl.s_cap, ...
+        'ode_reltol', p.bl.ode_reltol, 'ode_abstol', p.bl.ode_abstol, ...
+        'plant_mode', p.bl.plant_mode, 'drift_mode', p.bl.drift_mode, ...
+        'util_eps',   p.bl.util_eps, ...
+        'x0',         x0, ...
+        'target_identity', tabs.identity, ...
+        'protocol_file',   p.bl.protocol_file, ...
+        'protocol_sha256', p.bl.protocol_sha256);
+end

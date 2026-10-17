@@ -1,0 +1,10 @@
+M1 TCP Jacobian vs central differences, 20 configurations: max error 3.82e-10 (relative) -> PASS
+   momentum run RK4 0.002 s            max |dP| 1.32e-03 kg m/s, max |dL| 1.83e-03 kg m^2/s, CoM drift 5.88e-05 m, bus rot 0.99 deg, bus disp 0.003 m
+   momentum run RK4 0.001 s            max |dP| 3.76e-10 kg m/s, max |dL| 4.77e-10 kg m^2/s, CoM drift 6.39e-08 m, bus rot 0.99 deg, bus disp 0.003 m
+   momentum run implicitfast 0.002 s   max |dP| 1.96e-02 kg m/s, max |dL| 1.56e-02 kg m^2/s, CoM drift 1.61e-04 m, bus rot 0.99 deg, bus disp 0.003 m
+   RK4 momentum-drift convergence order (dt 2 ms -> 1 ms): 21.74
+M2 RK4 1 ms (model setting), 20 s PD arm manoeuvre: max |dP| 3.76e-10 kg m/s, max |dL| 4.77e-10 kg m^2/s (servicer+arm subtree); implicitfast at 2 ms drifts 2.0e-02 kg m/s (not used) -> PASS
+M3 RK4 1 ms, zero initial momentum: subtree CoM drift 6.39e-08 m while the bus moved 0.003 m and rotated 0.995 deg (base reaction present) -> PASS
+M4 generalised Jacobian TCP velocity vs full kinematics: relative error 0.00e+00; subtree momentum 6.2e-17 -> PASS
+M5 actuator ranges: joints [np.float64(150.0), np.float64(150.0), np.float64(150.0), np.float64(28.0), np.float64(28.0), np.float64(28.0)] N m, bus 3.0 N / 0.2 N m -> PASS
+MODEL CHECKS: ALL PASS

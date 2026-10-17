@@ -1,0 +1,16 @@
+det_r3_N1    -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1501 m  v 0.0336 m/s  pad 0 N  wrist 4.5 N  forbidden 0  wall 222 s
+det_r3_N2    -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1508 m  v 0.0864 m/s  pad 0 N  wrist 12.4 N  forbidden 0  wall 228 s
+det_r3_L1    -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.1, 'HOLD': 16.1}  end d 0.0004 m  v 0.0000 m/s  pad 41 N  wrist 1.6 N  forbidden 0  wall 50 s
+det_r3_L2    -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.2, 'HOLD': 16.2}  end d 0.0014 m  v 0.0001 m/s  pad 41 N  wrist 3.9 N  forbidden 0  wall 65 s
+det_r3_B1    -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0000 m  v 0.0000 m/s  pad 41 N  wrist 6.8 N  forbidden 0  wall 54 s
+w2_1_N1      -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1493 m  v 0.0331 m/s  pad 0 N  wrist 4.4 N  forbidden 0  wall 400 s
+w2_1_N2      -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1483 m  v 0.0978 m/s  pad 0 N  wrist 11.1 N  forbidden 0  wall 427 s
+w2_1_L1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0005 m  v 0.0000 m/s  pad 41 N  wrist 0.8 N  forbidden 0  wall 68 s
+w2_1_L2      -> UNSAFE_CONTACT  timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.0, 'HOLD': 16.0}  end d 0.0179 m  v 0.0017 m/s  pad 41 N  wrist 24.1 N  forbidden 272  wall 66 s
+w2_1_B1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0001 m  v 0.0000 m/s  pad 41 N  wrist 6.8 N  forbidden 0  wall 73 s
+w3_1_N1      -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1495 m  v 0.0233 m/s  pad 0 N  wrist 4.1 N  forbidden 0  wall 307 s
+w3_1_N2      -> NOT_REACHED     timeline {'SYNC': 0.0}  end d 0.1481 m  v 0.0745 m/s  pad 0 N  wrist 11.9 N  forbidden 0  wall 298 s
+w3_1_L1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.1, 'HOLD': 16.1}  end d 0.0004 m  v 0.0000 m/s  pad 41 N  wrist 1.1 N  forbidden 0  wall 66 s
+w3_1_L2      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 1.0, 'CLOSE': 16.2, 'HOLD': 16.2}  end d 0.0014 m  v 0.0001 m/s  pad 41 N  wrist 3.9 N  forbidden 0  wall 64 s
+w3_1_B1      -> CAPTURED        timeline {'SYNC': 0.0, 'APPROACH': 2.5, 'CLOSE': 17.5, 'HOLD': 17.5}  end d 0.0000 m  v 0.0000 m/s  pad 41 N  wrist 6.8 N  forbidden 0  wall 72 s
+exit=0
