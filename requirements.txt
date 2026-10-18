@@ -1,0 +1,10 @@
+# Python 3.10. Versions used for the results in this repository.
+mujoco==3.14.0
+numpy==2.2.6
+scipy==1.15.3
+matplotlib==3.10.9
+pillow==12.3.0
+imageio==2.38.0
+h5py==3.16.0
+pytest
+# ROS 2 Humble (rclpy) is needed only for python/ros2_capture and is installed with ROS 2, not with pip.
