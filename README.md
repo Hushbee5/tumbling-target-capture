@@ -195,7 +195,8 @@ milestone.
 ## Python port of the controller
 
 `python/gnc` is a Python port of the controller core: the Clohessy–Wiltshire model, the condensed preview MPC
-(solved with OSQP and refined to the exact solution on the active set) and the HOCBF-QP safety filter. It is checked
+(solved with OSQP and refined to the exact solution on the active set), the HOCBF-QP safety filter and the
+concurrent-learning estimator of the inertia ratios. It is checked
 against outputs recorded from the MATLAB implementation (`tests/python/test_gnc_parity.py`):
 
 | Check against MATLAB | Largest difference |
@@ -203,6 +204,7 @@ against outputs recorded from the MATLAB implementation (`tests/python/test_gnc_
 | Safety filter, 300 random states and commands (70 with the safety row active) | 3×10⁻¹⁸ m/s² |
 | MPC input sequence, 20 random states and set points | 9×10⁻¹³ m/s² |
 | 200 s closed loop, MPC → filter → plant, 2000 steps (with / without the filter) | 5×10⁻¹³ m / 2×10⁻¹² m |
+| Inertia-ratio estimator over the 800 s target rate history (θ̂ / bound ν) | 6×10⁻¹⁷ / 2×10⁻¹⁶ relative |
 
 In the demo below the set point lies behind the target. The MPC alone flies through the keep-out sphere. With the
 filter, the servicer slows down at the sphere, slides around it and reaches the set point without entering it.
@@ -222,8 +224,9 @@ components, which pushed it to about 10⁷², beyond what its fixed 200 bisectio
 computed from the significant components only (`test_filter_bracket_with_vanishing_component`). The MATLAB filter
 uses the same bracket; the issue arises only for such vanishingly small, non-zero components.
 
-The port covers the controller core with a fixed set point. The capture-point preview of the tumbling target, the
-inertia estimator and the commitment row of the paper remain in the MATLAB code.
+The estimator port (`python/gnc/estimator.py`) reproduces the bound reported for the 800 s run, ν = 1.23×10⁻³.
+The closed-loop demos use a fixed set point: the capture-point preview of the tumbling target and the commitment row
+of the paper remain in the MATLAB code.
 
 ## Repository layout
 
@@ -231,7 +234,7 @@ inertia estimator and the commitment row of the paper remain in the MATLAB code.
 |---|---|
 | `matlab/core` | dynamics, MPC, HOCBF filter, estimator, baselines, Monte Carlo campaign and verification code |
 | `matlab/v3` | the improved architecture used in the 60-trial validation; kept separate so that the code of the 600-run campaign stays exactly as it was frozen |
-| `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter), closed-loop demo, MuJoCo plant |
+| `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter, inertia-ratio estimator), closed-loop demo, MuJoCo plant |
 | `python/mujoco_capture` | MuJoCo model of the bus, arm and target; capture controller; stress tests |
 | `python/ros2_capture` | ROS 2 plant and controller nodes |
 | `python/rendering` | renders, animations and the figures above |
@@ -253,6 +256,13 @@ pip install -r requirements.txt
 pytest                              # Python-MATLAB parity of the port, MuJoCo model checks M1-M5
 python python/gnc/demo.py demo.png  # closed-loop demo of the Python port
 python scripts/setup_assets.py      # only for the renders: NASA Earth texture and sphere mesh
+```
+
+Or with Docker (Python side only):
+
+```bash
+docker build -t tumbling-target-capture .
+docker run --rm tumbling-target-capture        # runs the test suite
 ```
 
 In MATLAB, from the repository root:

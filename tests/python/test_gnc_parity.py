@@ -95,3 +95,26 @@ def test_mujoco_plant_matches_cw_loop():
     b = gnc.simulate(P, x0, [0.0, 3.0, 0.0], 30.0)
     np.testing.assert_allclose(a["X"], b["X"], rtol=0, atol=1e-10)
     assert a["r_min_fine"] > P["r_safe"]
+
+
+def test_inertia_ratio_estimator():
+    """Concurrent-learning estimator over the 800 s target rate history recorded from MATLAB (simulate_task4 grid)."""
+    from gnc.estimator import CLEstimator, cl_records
+    E = json.load(open(os.path.join(ROOT, "tests", "data", "estimator_reference.json")))
+    t, w = np.array(E["t"]), np.array(E["w"])
+    rec = cl_records(t, w, E["Tw"], E["Ts"])
+    assert len(rec["Te"]) == E["n_records"]
+    resid = np.linalg.norm(rec["D"] - rec["Y"] * np.array(E["theta_true"]), axis=1).max()
+    assert resid == pytest.approx(E["rec_resid"], rel=1e-6)
+    est = CLEstimator(rec, E["Ts"], gamma=E["gamma"], M=E["M"], nu0=E["nu0"])
+    keep = set(E["k"])
+    th, nu, lm, ns = [], [], [], []
+    for k in range(len(t) - 1):
+        v = est.step(t[k])
+        if k in keep:
+            th.append(v["theta_hat"]); nu.append(v["nu"]); lm.append(v["lambda_min"]); ns.append(v["n_stack"])
+    np.testing.assert_allclose(th, E["theta_hat"], rtol=0, atol=1e-12)
+    np.testing.assert_allclose(nu, E["nu"], rtol=1e-10)
+    np.testing.assert_allclose(lm, E["lambda_min"], rtol=1e-10, atol=1e-15)
+    np.testing.assert_array_equal(ns, E["n_stack"])
+    assert nu[-1] == pytest.approx(1.23e-3, rel=5e-3)                  # the value reported for the 800 s run
