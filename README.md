@@ -192,12 +192,33 @@ milestone.
 
 ![Grasp prototype](media/grasp_prototype.gif)
 
+## Python port of the controller
+
+`python/gnc` is a Python port of the controller core: the Clohessy–Wiltshire model, the condensed preview MPC
+(solved with OSQP and refined to the exact solution on the active set) and the HOCBF-QP safety filter. It is checked
+against outputs recorded from the MATLAB implementation (`tests/python/test_gnc_parity.py`):
+
+| Check against MATLAB | Largest difference |
+|---|---|
+| Safety filter, 300 random states and commands (70 with the safety row active) | 3×10⁻¹⁸ m/s² |
+| MPC input sequence, 20 random states and set points | 9×10⁻¹³ m/s² |
+| 200 s closed loop, MPC → filter → plant, 2000 steps (with / without the filter) | 5×10⁻¹³ m / 2×10⁻¹² m |
+
+In the demo below the set point lies behind the target. The MPC alone flies through the keep-out sphere. With the
+filter, the servicer slows down at the sphere, slides around it and reaches the set point without entering it.
+
+![Python port: closed loop with and without the safety filter](figures/python_port_closed_loop.png)
+
+The port covers the controller core with a fixed set point. The capture-point preview of the tumbling target, the
+inertia estimator and the commitment row of the paper remain in the MATLAB code.
+
 ## Repository layout
 
 | Folder | Contents |
 |---|---|
 | `matlab/core` | dynamics, MPC, HOCBF filter, estimator, baselines, Monte Carlo campaign and verification code |
 | `matlab/v3` | the improved architecture used in the 60-trial validation; kept separate so that the code of the 600-run campaign stays exactly as it was frozen |
+| `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter) and a closed-loop demo |
 | `python/mujoco_capture` | MuJoCo model of the bus, arm and target; capture controller; stress tests |
 | `python/ros2_capture` | ROS 2 plant and controller nodes |
 | `python/rendering` | renders, animations and the figures above |
@@ -205,10 +226,10 @@ milestone.
 | `protocols` | predeclared test protocols and the validation trial table |
 | `results` | summary results (CSV, JSON, reports); raw run records are not included because of their size |
 | `figures`, `media` | figures and animations |
-| `tests` | automated checks (MATLAB verification suites, MuJoCo model checks) |
+| `tests` | automated checks: MATLAB verification suites, Python-MATLAB parity of the port, MuJoCo model checks |
 | `scripts` | asset setup for the renders |
 
-**Tools used:** MATLAB (R2025b with the Optimization, Control System and Model Predictive Control toolboxes), Python 3.10 with MuJoCo and NumPy/SciPy, ROS 2 Humble.
+**Tools used:** MATLAB (R2025b with the Optimization, Control System and Model Predictive Control toolboxes), Python 3.10 with NumPy/SciPy, OSQP and MuJoCo, ROS 2 Humble.
 
 ## Getting started
 
@@ -216,7 +237,8 @@ milestone.
 git clone https://github.com/Hushbee5/tumbling-target-capture.git
 cd tumbling-target-capture
 pip install -r requirements.txt
-pytest                              # MuJoCo model checks M1-M5
+pytest                              # Python-MATLAB parity of the port, MuJoCo model checks M1-M5
+python python/gnc/demo.py demo.png  # closed-loop demo of the Python port
 python scripts/setup_assets.py      # only for the renders: NASA Earth texture and sphere mesh
 ```
 
