@@ -48,7 +48,7 @@ The capture point $p_b$ is fixed in the body frame, so in LVLH it moves as $p_{c
 capture-point path:
 
 $$
-\min_{u}\thickspace \sum_{j}\thinspace (x[j]-x_{\mathrm{ref}}[j])^{\top}Q\thinspace (x[j]-x_{\mathrm{ref}}[j]) + u[j]^{\top}R\thinspace u[j]
+\min_{u}\mkern5mu \sum_{j}\thinspace (x[j]-x_{\mathrm{ref}}[j])^{\top}Q\thinspace (x[j]-x_{\mathrm{ref}}[j]) + u[j]^{\top}R\thinspace u[j]
 \quad\text{s.t. discretised dynamics},\ |u_i|\le u_{\max}.
 $$
 
@@ -99,7 +99,7 @@ least as fast as the slowest mode:
 
 $$
 \tilde\theta_i(t) = \tilde\theta_i(0)\thinspace e^{-\gamma\int_0^t\lambda_i\thinspace d\tau}
-\thickspace \Rightarrow\thickspace 
+\mkern5mu \Rightarrow\mkern5mu 
 \lVert\tilde\theta(t)\rVert \le \lVert\tilde\theta(0)\rVert\thinspace e^{-\gamma\int_0^t\lambda_{\min}\thinspace d\tau}.
 $$
 
