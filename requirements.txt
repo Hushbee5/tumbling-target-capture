@@ -7,4 +7,5 @@ pillow==12.3.0
 imageio==2.38.0
 h5py==3.16.0
 pytest
+osqp==1.1.3
 # ROS 2 Humble (rclpy) is needed only for python/ros2_capture and is installed with ROS 2, not with pip.
