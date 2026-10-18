@@ -1,6 +1,7 @@
 # Safe terminal approach to a tumbling, non-cooperative target
 
 [![tests](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/tests.yml/badge.svg)](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/tests.yml)
+[![ros2](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/ros2.yml/badge.svg)](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/ros2.yml)
 
 Code and results for my IAC 2026 paper:
 
@@ -224,6 +225,17 @@ components, which pushed it to about 10⁷², beyond what its fixed 200 bisectio
 computed from the significant components only (`test_filter_bracket_with_vanishing_component`). The MATLAB filter
 uses the same bracket; the issue arises only for such vanishingly small, non-zero components.
 
+**ROS 2 package.** `ros2/gnc_ros` is an `ament_python` package built with `colcon`. It contains a plant node and a
+controller node (MPC + HOCBF-QP filter) that exchange `nav_msgs/Odometry` and `geometry_msgs/AccelStamped` in
+deterministic lockstep, plus a launch file. In CI (ROS 2 Humble container) a 60 s run over ROS 2 topics reproduces the
+in-process loop to 4×10⁻¹⁶ m, with and without the filter.
+
+```bash
+colcon build --base-paths ros2 && source install/setup.bash
+export PYTHONPATH=$PWD/python:$PYTHONPATH
+ros2 launch gnc_ros approach.launch.py duration:=200.0 out_file:=/tmp/approach.json
+```
+
 The estimator port (`python/gnc/estimator.py`) reproduces the bound reported for the 800 s run, ν = 1.23×10⁻³.
 The closed-loop demos use a fixed set point: the capture-point preview of the tumbling target and the commitment row
 of the paper remain in the MATLAB code.
@@ -236,7 +248,8 @@ of the paper remain in the MATLAB code.
 | `matlab/v3` | the improved architecture used in the 60-trial validation; kept separate so that the code of the 600-run campaign stays exactly as it was frozen |
 | `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter, inertia-ratio estimator), closed-loop demo, MuJoCo plant |
 | `python/mujoco_capture` | MuJoCo model of the bus, arm and target; capture controller; stress tests |
-| `python/ros2_capture` | ROS 2 plant and controller nodes |
+| `python/ros2_capture` | ROS 2 plant and controller nodes of the grasp prototype |
+| `ros2/gnc_ros` | ROS 2 package (colcon) with the plant and the MPC + HOCBF-QP controller nodes, launch file |
 | `python/rendering` | renders, animations and the figures above |
 | `python/analysis` | validation report and analysis scripts |
 | `protocols` | predeclared test protocols and the validation trial table |
