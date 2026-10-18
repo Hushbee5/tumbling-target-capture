@@ -1,5 +1,7 @@
 # Safe terminal approach to a tumbling, non-cooperative target
 
+[![tests](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/tests.yml/badge.svg)](https://github.com/Hushbee5/tumbling-target-capture/actions/workflows/tests.yml)
+
 Code and results for my IAC 2026 paper:
 
 > H. B. Gürbüz, *Robust Autonomous Capture of Non-Cooperative Tumbling Targets: An Adaptive Control Barrier
