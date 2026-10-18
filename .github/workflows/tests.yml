@@ -15,7 +15,10 @@ jobs:
       - uses: matlab-actions/setup-matlab@v2
         with:
           release: R2025b
-          products: Optimization_Toolbox
+          products: |
+            Optimization_Toolbox
+            Control_System_Toolbox
+            Model_Predictive_Control_Toolbox
       - uses: matlab-actions/run-command@v2
         with:
           command: results = runtests('tests/matlab'); disp(table(results)); assertSuccess(results);

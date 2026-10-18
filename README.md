@@ -206,7 +206,7 @@ milestone.
 | `tests` | automated checks (MATLAB verification suites, MuJoCo model checks) |
 | `scripts` | asset setup for the renders |
 
-**Tools used:** MATLAB (R2025b, Optimization Toolbox), Python 3.10 with MuJoCo and NumPy/SciPy, ROS 2 Humble.
+**Tools used:** MATLAB (R2025b with the Optimization, Control System and Model Predictive Control toolboxes), Python 3.10 with MuJoCo and NumPy/SciPy, ROS 2 Humble.
 
 ## Getting started
 
