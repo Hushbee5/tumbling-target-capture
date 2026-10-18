@@ -1,0 +1,32 @@
+name: ros2
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ros2:
+    name: ROS 2 Humble lockstep run
+    runs-on: ubuntu-latest
+    container: ros:humble
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          apt-get update && apt-get install -y python3-pip ros-humble-nav-msgs ros-humble-geometry-msgs
+          pip3 install "scipy>=1.10" osqp==1.1.3
+      - run: |
+          source /opt/ros/humble/setup.bash
+          colcon build --base-paths ros2 --event-handlers console_direct+
+      - name: Lockstep runs with and without the filter, compared with the in-process loop
+        run: |
+          source /opt/ros/humble/setup.bash
+          source install/setup.bash
+          export PYTHONPATH=$GITHUB_WORKSPACE/python:$PYTHONPATH
+          for f in true false; do
+            timeout 600 ros2 launch gnc_ros approach.launch.py duration:=30.0 use_filter:=$f out_file:=/tmp/run_$f.json
+            python3 ros2/check_ros_run.py /tmp/run_$f.json 30.0 $f
+          done
