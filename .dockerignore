@@ -1,0 +1,10 @@
+.git
+.github
+media
+figures
+results
+matlab
+**/__pycache__
+*.tif
+*.mat
+*.mp4
