@@ -27,6 +27,6 @@ jobs:
           source install/setup.bash
           export PYTHONPATH=$GITHUB_WORKSPACE/python:$PYTHONPATH
           for f in true false; do
-            timeout 600 ros2 launch gnc_ros approach.launch.py duration:=30.0 use_filter:=$f out_file:=/tmp/run_$f.json
-            python3 ros2/check_ros_run.py /tmp/run_$f.json 30.0 $f
+            timeout 600 ros2 launch gnc_ros approach.launch.py duration:=60.0 use_filter:=$f out_file:=/tmp/run_$f.json
+            python3 ros2/check_ros_run.py /tmp/run_$f.json 60.0 $f
           done
