@@ -11,6 +11,14 @@ Code and results for my IAC 2026 paper:
 
 ![Approach to the tumbling target](media/approach.gif)
 
+**In this repository**
+- MATLAB reference implementation: preview MPC, HOCBF-QP safety filter, inertia-ratio estimator, a predeclared
+  600-run Monte Carlo campaign and a 60-trial validation.
+- [Python port](#python-port-of-the-controller) of the controller, matching MATLAB to about 10⁻¹² m in closed loop,
+  flying a MuJoCo free body, and packaged as a ROS 2 package (`colcon`, launch file).
+- Automated checks on every push: MATLAB verification suites, Python–MATLAB parity, MuJoCo model checks, a Docker
+  image and a ROS 2 Humble lockstep run.
+
 ## The problem
 
 A servicer has to reach a handle on a tumbling satellite. The handle moves with the target, it sits only about
