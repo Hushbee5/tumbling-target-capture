@@ -214,6 +214,8 @@ Clohessy–Wiltshire terms and the command enter through MuJoCo's passive-force 
 every RK4 stage. Over 200 s (2000 control steps) the MuJoCo loop reproduces the exact-ZOH loop to 3×10⁻¹⁴ m, and the
 keep-out clearance is also checked at every 10 ms physics step.
 
+![Python controller flying MuJoCo free bodies, with and without the safety filter](media/python_port_mujoco.gif)
+
 Building this loop exposed one robustness issue in the safety filter, now fixed in the port. MuJoCo leaves values such
 as 10⁻⁷⁴ in an axis that should be exactly zero, and the bisection bracket of the filter's dual was computed from all
 components, which pushed it to about 10⁷², beyond what its fixed 200 bisection steps can resolve. The bracket is now
