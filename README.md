@@ -209,6 +209,17 @@ filter, the servicer slows down at the sphere, slides around it and reaches the 
 
 ![Python port: closed loop with and without the safety filter](figures/python_port_closed_loop.png)
 
+**MuJoCo plant.** `python/gnc/mujoco_loop.py` lets the same controller fly a 100 kg free body in MuJoCo. The
+Clohessy–Wiltshire terms and the command enter through MuJoCo's passive-force callback, so they are re-evaluated at
+every RK4 stage. Over 200 s (2000 control steps) the MuJoCo loop reproduces the exact-ZOH loop to 3×10⁻¹⁴ m, and the
+keep-out clearance is also checked at every 10 ms physics step.
+
+Building this loop exposed one robustness issue in the safety filter, now fixed in the port. MuJoCo leaves values such
+as 10⁻⁷⁴ in an axis that should be exactly zero, and the bisection bracket of the filter's dual was computed from all
+components, which pushed it to about 10⁷², beyond what its fixed 200 bisection steps can resolve. The bracket is now
+computed from the significant components only (`test_filter_bracket_with_vanishing_component`). The MATLAB filter
+uses the same bracket; the issue arises only for such vanishingly small, non-zero components.
+
 The port covers the controller core with a fixed set point. The capture-point preview of the tumbling target, the
 inertia estimator and the commitment row of the paper remain in the MATLAB code.
 
@@ -218,7 +229,7 @@ inertia estimator and the commitment row of the paper remain in the MATLAB code.
 |---|---|
 | `matlab/core` | dynamics, MPC, HOCBF filter, estimator, baselines, Monte Carlo campaign and verification code |
 | `matlab/v3` | the improved architecture used in the 60-trial validation; kept separate so that the code of the 600-run campaign stays exactly as it was frozen |
-| `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter) and a closed-loop demo |
+| `python/gnc` | Python port of the controller core (CW model, MPC, HOCBF-QP filter), closed-loop demo, MuJoCo plant |
 | `python/mujoco_capture` | MuJoCo model of the bus, arm and target; capture controller; stress tests |
 | `python/ros2_capture` | ROS 2 plant and controller nodes |
 | `python/rendering` | renders, animations and the figures above |

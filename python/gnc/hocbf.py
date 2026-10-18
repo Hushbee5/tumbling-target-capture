@@ -40,7 +40,11 @@ def cbf_qp_filter(x, u_nom, p):
         if a @ u0 - b <= 0:
             u, lam, status = u0, 0.0, 0
         else:
-            nz = np.abs(a) > 0
+            # Bracket from the significant components only. A component many orders of magnitude below the others
+            # (e.g. 1e-74 left by an integrator in an axis that should be exactly zero) would otherwise push lam_hi
+            # to ~1e72, beyond what the fixed 200 bisection steps can resolve. If the bracket is not yet valid it is
+            # doubled below, as before.
+            nz = np.abs(a) > 1e-12 * np.abs(a).max()
             lam_hi = np.max((np.abs(u_nom[nz]) + umax) / np.abs(a[nz])) if nz.any() else 1.0
             if not np.isfinite(lam_hi):
                 lam_hi = 1.0

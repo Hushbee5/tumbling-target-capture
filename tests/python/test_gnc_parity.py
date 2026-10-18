@@ -73,3 +73,25 @@ def test_closed_loop(i):
         assert rmin > P["r_safe"]                               # never inside the keep-out sphere
     else:
         assert rmin < P["r_safe"]                               # the unfiltered MPC cuts through it
+
+
+def test_filter_bracket_with_vanishing_component():
+    """A position component of 1e-74 (left by an integrator in an unused axis) must not change the filtered command."""
+    x = np.array([-1.25626564e-05, -9.99996020e+00, -2.25e-74, -2.51223105e-04, 7.96108426e-04, 1.1e-70])
+    u_nom = np.array([-2.44893230e-03, 1.0e-02, -2.7e-71])
+    u_tiny, _ = gnc.cbf_qp_filter(x, u_nom, P)
+    x0, u0 = x.copy(), u_nom.copy()
+    x0[[2, 5]] = 0.0
+    u0[2] = 0.0
+    u_zero, _ = gnc.cbf_qp_filter(x0, u0, P)
+    np.testing.assert_allclose(u_tiny, u_zero, rtol=0, atol=1e-15)
+
+
+def test_mujoco_plant_matches_cw_loop():
+    """The controller flying a MuJoCo free body (CW terms at every RK4 stage) reproduces the exact-ZOH CW loop."""
+    from gnc.mujoco_loop import run
+    x0 = np.array([0.0, -10.0, 0.0, 0.0, 0.0, 0.0])
+    a = run(P, x0, [0.0, 3.0, 0.0], 30.0)
+    b = gnc.simulate(P, x0, [0.0, 3.0, 0.0], 30.0)
+    np.testing.assert_allclose(a["X"], b["X"], rtol=0, atol=1e-10)
+    assert a["r_min_fine"] > P["r_safe"]
