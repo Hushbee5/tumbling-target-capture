@@ -39,16 +39,16 @@ $$
 **Tumbling target.** Torque-free rigid-body rotation:
 
 $$
-I\dot\omega + \omega\times(I\omega) = 0,\qquad \dot q = \tfrac12\,\Omega(\omega)\,q .
+I\dot\omega + \omega\times(I\omega) = 0,\qquad \dot q = \tfrac12\thinspace \Omega(\omega)\thinspace q .
 $$
 
-The capture point $p_b$ is fixed in the body frame, so in LVLH it moves as $p_{cp,L} = R(q_L)\,p_b$.
+The capture point $p_b$ is fixed in the body frame, so in LVLH it moves as $p_{cp,L} = R(q_L)\thinspace p_b$.
 
 **Upper layer: preview MPC.** Re-solved every $T_s = 0.1$ s over $N = 100$ steps, tracking the predicted
 capture-point path:
 
 $$
-\min_{u}\;\sum_{j}\,(x[j]-x_{\mathrm{ref}}[j])^{\top}Q\,(x[j]-x_{\mathrm{ref}}[j]) + u[j]^{\top}R\,u[j]
+\min_{u}\thickspace \sum_{j}\thinspace (x[j]-x_{\mathrm{ref}}[j])^{\top}Q\thinspace (x[j]-x_{\mathrm{ref}}[j]) + u[j]^{\top}R\thinspace u[j]
 \quad\text{s.t. discretised dynamics},\ |u_i|\le u_{\max}.
 $$
 
@@ -76,9 +76,9 @@ $$
 It is enforced robustly against the error of the estimated inertia ratios $\hat\theta$:
 
 $$
-\psi_{2,\mathrm{cap}}(x,\hat\theta) - \nu(t)\,\lVert L_Y\psi_{1,\mathrm{cap}}\rVert \ge 0,
+\psi_{2,\mathrm{cap}}(x,\hat\theta) - \nu(t)\thinspace \lVert L_Y\psi_{1,\mathrm{cap}}\rVert \ge 0,
 \qquad
-\nu(t) = \sqrt3\,\exp\!\Big(-\gamma\!\int_0^t\lambda_{\min}(\tau)\,d\tau\Big).
+\nu(t) = \sqrt3\thinspace \exp\negthinspace \Big(-\gamma\negthinspace \int_0^t\lambda_{\min}(\tau)\thinspace d\tau\Big).
 $$
 
 **Handoff (V3).** The commitment row is released on the reachable boundary, with a braking reserve
@@ -86,8 +86,8 @@ $\beta = 0.3$:
 
 $$
 h_{\mathrm{cap}} \le h^{*} + \varepsilon_h,\quad \dot\rho \le 0,\qquad
-h^{*} = \frac{\eta\,\nu}{\kappa_1\kappa_2},\qquad
-a_{\mathrm{req}} \le (1-\beta)\,u_{\max}.
+h^{*} = \frac{\eta\thinspace \nu}{\kappa_1\kappa_2},\qquad
+a_{\mathrm{req}} \le (1-\beta)\thinspace u_{\max}.
 $$
 
 Here $\rho = \lVert d\rVert$ is the distance to the capture point.
@@ -98,9 +98,9 @@ Here $\rho = \lVert d\rVert$ is the distance to the capture point.
 least as fast as the slowest mode:
 
 $$
-\tilde\theta_i(t) = \tilde\theta_i(0)\,e^{-\gamma\int_0^t\lambda_i\,d\tau}
-\;\Rightarrow\;
-\lVert\tilde\theta(t)\rVert \le \lVert\tilde\theta(0)\rVert\,e^{-\gamma\int_0^t\lambda_{\min}\,d\tau}.
+\tilde\theta_i(t) = \tilde\theta_i(0)\thinspace e^{-\gamma\int_0^t\lambda_i\thinspace d\tau}
+\thickspace \Rightarrow\thickspace 
+\lVert\tilde\theta(t)\rVert \le \lVert\tilde\theta(0)\rVert\thinspace e^{-\gamma\int_0^t\lambda_{\min}\thinspace d\tau}.
 $$
 
 With the truth-independent start $\hat\theta_0 = 0$ and $\lVert\theta\rVert\le\sqrt3$ on the admissible set
@@ -195,7 +195,7 @@ milestone.
 | Folder | Contents |
 |---|---|
 | `matlab/core` | dynamics, MPC, HOCBF filter, estimator, baselines, Monte Carlo campaign and verification code |
-| `matlab/v3` | the improved architecture used in the 60-trial validation |
+| `matlab/v3` | the improved architecture used in the 60-trial validation; kept separate so that the code of the 600-run campaign stays exactly as it was frozen |
 | `python/mujoco_capture` | MuJoCo model of the bus, arm and target; capture controller; stress tests |
 | `python/ros2_capture` | ROS 2 plant and controller nodes |
 | `python/rendering` | renders, animations and the figures above |
@@ -203,15 +203,38 @@ milestone.
 | `protocols` | predeclared test protocols and the validation trial table |
 | `results` | summary results (CSV, JSON, reports); raw run records are not included because of their size |
 | `figures`, `media` | figures and animations |
+| `tests` | automated checks (MATLAB verification suites, MuJoCo model checks) |
+| `scripts` | asset setup for the renders |
 
-**Tools used:** MATLAB (R2025b), Python 3.10 with MuJoCo 3.x and NumPy/SciPy, ROS 2 Humble.
+**Tools used:** MATLAB (R2025b, Optimization Toolbox), Python 3.10 with MuJoCo and NumPy/SciPy, ROS 2 Humble.
+
+## Getting started
+
+```bash
+git clone https://github.com/Hushbee5/tumbling-target-capture.git
+cd tumbling-target-capture
+pip install -r requirements.txt
+pytest                              # MuJoCo model checks M1-M5
+python scripts/setup_assets.py      # only for the renders: NASA Earth texture and sphere mesh
+```
+
+In MATLAB, from the repository root:
+
+```matlab
+results = runtests('tests/matlab')  % verification suites of the dynamics, the safety filter and the MPC
+```
+
+Both test sets also run automatically on every push (GitHub Actions).
 
 ## Notes
 
 - All results are from simulation.
+- Known issue in the MuJoCo prototype: the Clohessy-Wiltshire forces are applied once per step, so the orbital
+  terms are integrated to first order (7.4e-7 m error after 600 s). Check M6 records this as an expected failure
+  (`pytest -m slow`).
 - Raw `.mat` run records (several hundred MB) are available on request.
-- The Earth texture in the renders is NASA Visible Earth imagery (Blue Marble). It is not included here; download
-  `land_shallow_topo_8192.tif` from NASA Visible Earth and convert it to PNG to re-render.
+- The Earth texture in the renders is NASA Visible Earth imagery (Blue Marble). It is not included here;
+  `scripts/setup_assets.py` downloads it from NASA Visible Earth and converts it.
 - The paper itself is not included (IAF copyright).
 
 © 2026 Hasan Baran Gürbüz. All rights reserved.
